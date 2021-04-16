@@ -1,3 +1,7 @@
+Version updated to work with Movistar+
+
+This software is a Fork from https://github.com/maru-sama/rtsp-linux
+
 Disclaimer: 
 ===========
 
