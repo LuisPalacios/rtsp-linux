@@ -471,6 +471,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
 #endif
 
 	switch (CTINFO2DIR(ctinfo)) {
+	case IP_CT_DIR_MAX:
 	case IP_CT_DIR_ORIGINAL:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0)
 		ret = help_out(skb, rb_ptr, datalen, ct, ctinfo, protoff);
