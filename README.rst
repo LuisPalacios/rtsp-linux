@@ -1,44 +1,29 @@
-This software has been tested to work as-is on Gentoo with Movistar+
+Los streams de video IPTV que utiliza Movistar son de dos tipos: los canales normales (Multicast/UDP) y los videos bajo demanda (Unicast/UDP). En el apunte  [Video bajo demanda para Movistar](https://www.luispa.com/linux/2014/10/18/movistar-bajo-demanda.html) describo qué hay que hacer en un [router Linux para Movistar](https://www.luispa.com/linux/2014/10/05/router-linux.html) para que funcionen los "Videos bajo demanda". 
 
-It's a Fork from https://github.com/maru-sama/rtsp-linux
+Utilizan el protocolo `RTSP` que necesita que nuestro router soporte **Full Cone NAT**. Para implementarlo en linux he hecho un [fork de **netfilter rtsp**](https://github.com/maru-sama/rtsp-linux), un software libre llamado **rtsp-conntrack** que añade soporte a nuestro linux para hacer lo necesario para que esto funcione. 
 
-Disclaimer: 
-===========
+- Instalación del módulo, fíjate que uso "debug" al hacer el make. Durante la fase de pruebas es importante para enterarte de lo que está pasando (log del kernel). Más adelante recompilo sin dicha opción.
 
-This software is provided as is. I take no responsibility if it destroys your
-data or opens up a security hole on your firewall. That said, I have yet to
-hear something about this happening.
+```console
+ 
+___DESCARGA___
+# cd ~/
+# wget https://github.com/LuisPalacios/rtsp-linux/archive/refs/heads/master.zip
+# unzip master.zip
+# rm master.zip
+# cd ~/rtsp-linux-master
 
-I did not create this code myself, most was written by Tom Marshall, later on
-Harald Welte and then Steven van Acker ported it to the new 2.6 netfilter API.
-I just picked up this code in 2007 and made it compile and hopefully work with
-the new changed netfilter API.
+___COMPILA___
+# make debug
+:
 
-Bugs: 
-=====
-
-Of course there are. One of the most important ones, is that you MUST NOT
-filter outgoing connections otherwise the reply packes go missing. I tried to
-figure out, why the _expect call is not taking care of the outgoing connections
-but I was not able to figure this out. I gladly welcome patches that fix this
-and other bugs.
-
-Build Instructions: 
-===================
-
-Have the kernel source ready in some place and NF_CONNTRACK_NAT enabled in the
-configuration otherwise you will get an error during make. The Kbuild setup
-looks in /lib/modules/\`uname -r\`/build for the source. 
-
-If the source is located in another place set the KERNELDIR environment
-variable accordingly.
-
-After that a:
-
-	* make 
-	* make modules_install (as root)
-
-should be enough.  
-Then do a "modprobe nf_nat_rtsp" as root and try to connect to a RTSP
-service.
-
+___INSTALA MODULOS KERNEL___
+# make modules_install
+:
+# ls -al /lib/modules/3.17.0-gentoo/extra/
+total 36
+drwxr-xr-x 2 root root 4096 oct 18 16:37 .
+drwxr-xr-x 5 root root 4096 oct 18 16:41 ..
+-rw-r--r-- 1 root root 13305 oct 18 16:41 nf_conntrack_rtsp.ko
+-rw-r--r-- 1 root root 11369 oct 18 16:41 nf_nat_rtsp.ko
+```
