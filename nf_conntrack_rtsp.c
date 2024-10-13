@@ -550,10 +550,11 @@ init(void)
 			sprintf(tmpname, "rtsp-%d", i);
 		}
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0)
-		strlcpy(hlpr->name, tmpname, sizeof(hlpr->name));
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+	    strscpy(hlpr->name, tmpname, sizeof(hlpr->name));
 #else
-		hlpr->name = tmpname;
+    	strncpy(hlpr->name, tmpname, sizeof(hlpr->name) - 1);
+	    hlpr->name[sizeof(hlpr->name) - 1] = '\0';
 #endif
 		pr_debug("port #%d: %d\n", i, ports[i]);
 
