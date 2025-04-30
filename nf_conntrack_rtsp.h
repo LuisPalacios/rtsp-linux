@@ -46,6 +46,7 @@ struct ip_ct_rtsp_expect
 {
     u_int32_t   len;        /* length of header block */
     portblock_t pbtype;     /* Type of port block that was requested */
+	u_int8_t 	protonum;	/* The protocol use for transport */
     u_int16_t   loport;     /* Port that was requested, low or first */
     u_int16_t   hiport;     /* Port that was requested, high or second */
 #if 0
