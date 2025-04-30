@@ -33,7 +33,7 @@
  * an expected data channel (default 300 seconds).
  *
  */
-
+ 
 #include <linux/module.h>
 #include <linux/netfilter.h>
 #include <linux/ip.h>
@@ -186,9 +186,16 @@ rtsp_parse_transport(char* ptran, uint tranlen,
 		return 0;
 	}
 	
+	
+	prtspexp->protonum = IPPROTO_UDP;
+	
 	pr_debug("tran='%.*s'\n", (int)tranlen, ptran);
 	off += 10;
 	SKIP_WSPACE(ptran, tranlen, off);
+	
+	if (strstr(ptran,"TCP")!=NULL) {
+		prtspexp->protonum = IPPROTO_TCP;
+	}
 	
 	/* Transport: tran;field;field=val,tran;field;field=val,... */
 	while (off < tranlen) {
@@ -343,12 +350,17 @@ help_out(struct sk_buff *skb, unsigned char *rb_ptr, unsigned int datalen,
 			goto out;
 		}
 
+		if (expinfo.protonum==IPPROTO_UDP) 
+			pr_debug("try udp transports\n");
+		else if (expinfo.protonum==IPPROTO_TCP) 
+			pr_debug("try tcp transports\n");
+		
 		nf_ct_expect_init(rtp_exp, NF_CT_EXPECT_CLASS_DEFAULT,
 				  nf_ct_l3num(ct),
 				  &ct->tuplehash[!dir].tuple.src.u3,
 				  &ct->tuplehash[!dir].tuple.dst.u3,
-				  IPPROTO_UDP, NULL, &be_loport);
-
+				  expinfo.protonum, NULL, &be_loport);
+				  
 		rtp_exp->flags = 0;
 
 		if (expinfo.pbtype == pb_range || expinfo.pbtype == pb_discon) {
@@ -365,7 +377,7 @@ help_out(struct sk_buff *skb, unsigned char *rb_ptr, unsigned int datalen,
 					  nf_ct_l3num(ct),
 					  &ct->tuplehash[!dir].tuple.src.u3,
 					  &ct->tuplehash[!dir].tuple.dst.u3,
-					  IPPROTO_UDP, NULL, &be_hiport);
+					  expinfo.protonum, NULL, &be_hiport);
 
 			rtcp_exp->flags = 0;
 
