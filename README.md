@@ -1,9 +1,8 @@
 # Full Cone NAT
 
-Los streams de video IPTV que utiliza Movistar son de dos tipos: los canales normales (Multicast/UDP) y los videos bajo demanda (Unicast/UDP). Los últimos usan el protocolo `RTSP` que necesita que nuestro router soporte **Full Cone NAT**. Para implementarlo en linux necesitamos este repositorio, un [fork de **netfilter rtsp**](https://github.com/maru-sama/rtsp-linux). Se trata de un software libre llamado **rtsp-conntrack** que añade soporte para hacer lo necesario para que esto funcione. 
+Los streams de video IPTV que utiliza Movistar son de dos tipos: los canales normales (Multicast/UDP) y los videos bajo demanda (Unicast/UDP). Los últimos usan el protocolo `RTSP` que necesita que nuestro router soporte **Full Cone NAT**. Para implementarlo en linux necesitamos este repositorio, un [fork de **netfilter rtsp**](https://github.com/maru-sama/rtsp-linux). Se trata de un software libre llamado **rtsp-conntrack** que añade soporte para hacer lo necesario para que esto funcione.
 
 En el apunte [Videos bajo demanda para Movistar](https://www.luispa.com/linux/2014/10/18/movistar-bajo-demanda.html) tienes el detalle del caso de uso de este software, dejo aquí solo las notas sobre la instalación.
-
 
 ## Compilar módulos de kernel en Ubuntu
 
@@ -62,17 +61,22 @@ Creo la clave
 ```bash
 openssl req -new -nodes -utf8 -sha512 -days 36500 -batch -x509 -config x509.genkey -outform PEM -out signing_key.pem -keyout signing_key.priv
 :
+```
 
+Cambio permisos
+
+```bash
+chmod 600 signing_key.*
 ls -al
 total 20
 drwxrwxr-x  2 luis luis 4096 oct 13 19:55 .
 drwxr-x--- 12 luis luis 4096 oct 13 19:55 ..
--rw-rw-r--  1 luis luis 1773 oct 13 19:55 signing_key.pem
+-rw-------  1 luis luis 1773 oct 13 19:55 signing_key.pem
 -rw-------  1 luis luis 3272 oct 13 19:55 signing_key.priv
 -rw-rw-r--  1 luis luis  301 oct 13 19:55 x509.genkey
 ```
 
-Copio las claves 
+Copio las claves
 
 ```bash
 sudo cp ~/keys-kernel-modules/signing_key.*  /lib/modules/$(uname -r)/build/certs
@@ -139,7 +143,7 @@ nf_conntrack          196608  7 xt_conntrack,nf_nat,nf_conntrack_rtsp,nf_conntra
 
 ## Configurar `conntrack`
 
-- A continuación tenemos que configurar `conntrack` para que llame a los módulos del kernel. Hay dos formas de hacerlo, dependiendo de qué versíon del kernel tengas: 
+- A continuación tenemos que configurar `conntrack` para que llame a los módulos del kernel. Hay dos formas de hacerlo, dependiendo de qué versíon del kernel tengas:
 
 - Kernel <= 5 : `sysctl -w net.netfilter.nf_conntrack_helper=1`
 - Kernel >= 6 : `iptables -t raw -A PREROUTING -p tcp --dport 554 -j CT --helper rtsp`
@@ -175,7 +179,7 @@ nf_conntrack          196608  7 xt_conntrack,nf_nat,nf_conntrack_rtsp,nf_conntra
 [359264.285029] IP_CT_DIR_REPLY
 ```
 
-Una vez lo tengas todo funcionando te recomiendo que recompiles sin "debug", vuelvas a instalar los módulos y programes su carga durante el arranque del equipo. 
+Una vez lo tengas todo funcionando te recomiendo que recompiles sin "debug", vuelvas a instalar los módulos y programes su carga durante el arranque del equipo.
 
 Recompila e instala
 

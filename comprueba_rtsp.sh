@@ -1,21 +1,35 @@
 #!/bin/bash
+set -euo pipefail
 
-# Comprobar si el módulo nf_nat_rtsp está cargado
-if lsmod | grep -i rtsp > /dev/null; then
-    echo "El módulo nf_nat_rtsp ya está cargado."
+TAG="comprueba_rtsp"
+MODULE="nf_nat_rtsp"
+SRC_DIR="/root/rtsp-linux-master"
+SCRIPT="${SRC_DIR}/compila_e_instala.sh"
+
+log() {
+    logger --tag "$TAG" "$1"
+    echo "[${TAG}] $1"
+}
+
+fail() {
+    logger --tag "$TAG" --priority err "ERROR: $1"
+    echo "[${TAG}] ERROR: $1" >&2
+    exit 1
+}
+
+log "Comprobando si el módulo $MODULE está cargado..."
+
+if lsmod | awk '{print $1}' | grep -q "^${MODULE}$"; then
+    log "El módulo $MODULE ya está cargado."
     exit 0
-else
-    echo "El módulo nf_nat_rtsp no está cargado. Procediendo a compilar e instalar."
-    # Cambiar al directorio /root/rtsp-linux-master
-    cd ~/rtsp-linux-master || { echo "No se pudo cambiar al directorio ~/rtsp-linux-master"; exit 1; }
-
-    # Ejecutar el script compila_e_instala.sh
-    if sudo ./compila_e_instala.sh; then
-        echo "Compilación e instalación completada con éxito."
-    else
-        echo "Error al compilar e instalar."
-        exit 1
-    fi
 fi
 
-exit 0
+log "El módulo $MODULE no está cargado. Procediendo a compilar e instalar."
+
+[[ -x "$SCRIPT" ]] || fail "Script $SCRIPT no encontrado o no ejecutable"
+
+if "$SCRIPT"; then
+    log "Compilación e instalación completada con éxito."
+else
+    fail "Fallo al ejecutar $SCRIPT"
+fi
